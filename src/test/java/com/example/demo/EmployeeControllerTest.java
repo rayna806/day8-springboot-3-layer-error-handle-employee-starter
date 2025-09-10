@@ -183,5 +183,42 @@ public class EmployeeControllerTest {
                 .andExpect(jsonPath("$.length()").value(5));
     }
 
+    //抛异常不用写
+//    @Test
+//    void when_create_a_employee_of_greater_than_30_with_salary_below_20000() throws Exception {
+//        String requestBody = """
+//                        {
+//                            "name": "John Smith",
+//                            "age": 31,
+//                            "salary": 15000
+//                        }
+//        """;
+//
+//        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(requestBody))
+//                .andExpect(status().isBadRequest());
+//    }
+
+    @Test
+    void should_set_employee_status_active_by_default_when_create_employee() throws Exception {
+        createJohnSmith();
+        mockMvc.perform(get("/employees/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(true));
+    }
+
+    @Test
+    void should_set_employee_status_unactive_when_delete_employee() throws Exception {
+        int id = createJohnSmith().getId();
+
+        mockMvc.perform(delete("/employees/" + id))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get("/employees/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(false));
+    }
+
+
 
 }
