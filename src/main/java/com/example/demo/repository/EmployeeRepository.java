@@ -1,7 +1,10 @@
-package com.example.demo;
+package com.example.demo.repository;
 
+import com.example.demo.entity.Employee;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -9,13 +12,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-@RestController
-@RequestMapping("/employees")
-public class EmployeeController {
+@Repository
+public class EmployeeRepository {
     private final List<Employee> employees = new ArrayList<>();
 
-    @GetMapping
-    public List<Employee> getEmployees(@RequestParam(required = false) String gender, @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+    public void empty() {
+        employees.clear();
+    }
+    public List<Employee> getEmployees(String gender, Integer page, Integer size) {
         Stream<Employee> stream = employees.stream();
         if (gender != null) {
             stream = stream.filter(employee -> employee.getGender().compareToIgnoreCase(gender) == 0);
@@ -25,25 +29,26 @@ public class EmployeeController {
         }
         return stream.toList();
     }
-
-    @GetMapping("/{id}")
-    public Employee getEmployeeById(@PathVariable int id) {
+    public Employee getEmployeeById(int id) {
         return employees.stream()
                 .filter(employee -> employee.getId() == id)
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found with id: " + id));
+                .orElse(null);
     }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Employee createEmployee(@RequestBody Employee employee) {
+    public Employee createEmployee(Employee employee) {
         employee.setId(employees.size() + 1);
         employees.add(employee);
         return employee;
     }
 
-    @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
+    public Employee deleteEmployee(int id) {
+        Employee found = getEmployeeById(id);
+        if (found == null) {
+            return null;
+        }
+        employees.remove(found);
+        return found;
+    }
     public Employee updateEmployee(@PathVariable int id, @RequestBody Employee updatedEmployee) {
         Employee found = null;
         for (Employee e : employees) {
@@ -60,27 +65,5 @@ public class EmployeeController {
         found.setGender(updatedEmployee.getGender());
         found.setSalary(updatedEmployee.getSalary());
         return found;
-    }
-
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteEmployee(@PathVariable int id) {
-        Employee found = null;
-        for (Employee e : employees) {
-            if (e.getId() == id) {
-                found = e;
-                break;
-            }
-        }
-        if (found == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found with id: " + id);
-        }
-        employees.remove(found);
-    }
-
-    @DeleteMapping("/all")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void empty() {
-        employees.clear();
     }
 }
