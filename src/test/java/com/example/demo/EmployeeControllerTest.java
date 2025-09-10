@@ -116,6 +116,48 @@ public class EmployeeControllerTest {
 
         mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(requestBody)).andExpect(status().isCreated()).andExpect(jsonPath("$.id").isNumber()).andExpect(jsonPath("$.name").value("John Smith")).andExpect(jsonPath("$.age").value(28)).andExpect(jsonPath("$.gender").value("MALE")).andExpect(jsonPath("$.salary").value(60000));
     }
+    //ExceptionHandler
+    @Test
+    void should_create_employee_age_is_null() throws Exception {
+        String requestBody = """
+                        {
+                            "name": "John Smith",
+                            "gender": "MALE",
+                            "salary": 60000
+                        }
+                """;
+
+        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(requestBody)).andExpect(jsonPath("$.message").value("employee age is null!"));
+    }
+
+    //ExceptionHandler
+    @Test
+    void should_create_employee_age_is_greater_than_65_or_less_than_18() throws Exception {
+        String requestBody = """
+                        {
+                            "name": "John Smith",
+                            "age": 70,
+                            "gender": "MALE",
+                            "salary": 60000
+                        }
+                """;
+
+        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(requestBody)).andExpect(jsonPath("$.message").value("employee age is out of range!"));
+    }
+    //ExceptionHandler
+    @Test
+    void should_create_employee_age_is_greater_than_30_and_salary_less_than_20000() throws Exception {
+        String requestBody = """
+                        {
+                            "name": "John Smith",
+                            "age": 31,
+                            "gender": "MALE",
+                            "salary": 10000
+                        }
+                """;
+
+        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(requestBody)).andExpect(jsonPath("$.message").value("employee salary cannot be below 20000 if age is greater than 30!"));
+    }
 
     @Test
     void should_return_200_with_empty_body_when_no_employee() throws Exception {
@@ -218,6 +260,7 @@ public class EmployeeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(false));
     }
+
 
 
 
