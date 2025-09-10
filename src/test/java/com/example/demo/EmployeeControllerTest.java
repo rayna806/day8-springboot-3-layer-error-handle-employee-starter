@@ -65,17 +65,15 @@ public class EmployeeControllerTest {
         mockMvc.perform(get("/employees/999").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound());
     }
 //
-    @Test
-    void should_return_all_employee() throws Exception {
-//        employeeController.createEmployee(johnSmith());
-//        employeeController.createEmployee(janeDoe());
-        createJohnSmith();
-        createJaneDoe();
-        mockMvc.perform(get("/employees").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2));
+//    @Test
+//    void should_return_all_employee() throws Exception {
+//        createJohnSmith();
+//        createJaneDoe();
+//        mockMvc.perform(get("/employees").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2));
 //        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(jane));
 //        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(john));
-
-    }
+//
+//    }
 
     @Test
     void should_return_employee_when_employee_found() throws Exception {
@@ -225,20 +223,6 @@ public class EmployeeControllerTest {
                 .andExpect(jsonPath("$.length()").value(5));
     }
 
-    //抛异常不用写
-//    @Test
-//    void when_create_a_employee_of_greater_than_30_with_salary_below_20000() throws Exception {
-//        String requestBody = """
-//                        {
-//                            "name": "John Smith",
-//                            "age": 31,
-//                            "salary": 15000
-//                        }
-//        """;
-//
-//        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(requestBody))
-//                .andExpect(status().isBadRequest());
-//    }
 
     @Test
     void should_set_employee_status_active_by_default_when_create_employee() throws Exception {
