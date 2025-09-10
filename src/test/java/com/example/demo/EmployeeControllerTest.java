@@ -22,7 +22,7 @@ public class EmployeeControllerTest {
     @Autowired
     private EmployeeController employeeController;
 
-//    private static Employee employee(String name, int age, String gender, double salary) {
+    //    private static Employee employee(String name, int age, String gender, double salary) {
 //        Employee e = new Employee();
 //        e.setName(name);
 //        e.setAge(age);
@@ -31,51 +31,58 @@ public class EmployeeControllerTest {
 //        return e;
 //    }
 //
-//    private static Employee johnSmith() {
-//        return employee("John Smith", 28, "MALE", 60000.0);
-//    }
-//
-//    private static Employee janeDoe() {
-//        return employee("Jane Doe", 22, "FEMALE", 60000.0);
-//    }
-//
-//    @BeforeEach
-//    void cleanEmployees() {
-//        employeeController.empty();
-//    }
+    private Employee createJohnSmith() throws Exception {
+        Gson gson = new Gson();
+        Employee john = new Employee(null,"John Smith", 28, "MALE", 60000.0 );
+        String johnString = gson.toJson(john);
+
+        mockMvc.perform(post("/employees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(johnString));
+
+        return john;
+    }
+
+    private Employee createJaneDoe() throws Exception {
+        Gson gson = new Gson();
+        Employee jane = new Employee(2,"Jane Doe", 22, "FEMALE", 60000.0 );
+        String janeString = gson.toJson(jane).toString();
+        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(janeString));
+        return jane;
+    }
+
+    @BeforeEach
+    void cleanEmployees() throws Exception {
+        mockMvc.perform(delete("/employees/all"));
+    }
 
     @Test
     void should_return_404_when_employee_not_found() throws Exception {
-        mockMvc.perform(get("/employees/999")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/employees/999").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound());
     }
 
     @Test
     void should_return_all_employee() throws Exception {
 //        employeeController.createEmployee(johnSmith());
 //        employeeController.createEmployee(janeDoe());
-        Gson gson = new Gson();
-        String jane = gson.toJson(new Employee("Jane Doe", 20, "MALE", 60000.0, null)).toString();
-        String john = gson.toJson(new Employee("John Smith", 28, "MALE", 60000.0, null)).toString();
-        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(jane));
-        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(john));
+        createJohnSmith();
+        createJaneDoe();
+        mockMvc.perform(get("/employees").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2));
+//        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(jane));
+//        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(john));
 
     }
 
-//    @Test
-//    void should_return_employee_when_employee_found() throws Exception {
-//        Employee expect = employeeController.createEmployee(johnSmith());
-//
-//        mockMvc.perform(get("/employees/1")
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.id").value(expect.getId()))
-//                .andExpect(jsonPath("$.name").value(expect.getName()))
-//                .andExpect(jsonPath("$.age").value(expect.getAge()))
-//                .andExpect(jsonPath("$.gender").value(expect.getGender()))
-//                .andExpect(jsonPath("$.salary").value(expect.getSalary()));
-//    }
+    @Test
+    void should_return_employee_when_employee_found() throws Exception {
+        createJohnSmith();
+
+        mockMvc.perform(get("/employees/1")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("John Smith")).andExpect(jsonPath("$.age").value(28)).andExpect(jsonPath("$.gender").value("MALE")).andExpect(jsonPath("$.salary").value(60000));
+    }
 
 //    @Test
 //    void should_return_male_employee_when_employee_found() throws Exception {
@@ -103,24 +110,12 @@ public class EmployeeControllerTest {
                         }
                 """;
 
-        mockMvc.perform(post("/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.name").value("John Smith"))
-                .andExpect(jsonPath("$.age").value(28))
-                .andExpect(jsonPath("$.gender").value("MALE"))
-                .andExpect(jsonPath("$.salary").value(60000));
+        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(requestBody)).andExpect(status().isCreated()).andExpect(jsonPath("$.id").isNumber()).andExpect(jsonPath("$.name").value("John Smith")).andExpect(jsonPath("$.age").value(28)).andExpect(jsonPath("$.gender").value("MALE")).andExpect(jsonPath("$.salary").value(60000));
     }
 
     @Test
     void should_return_200_with_empty_body_when_no_employee() throws Exception {
-        mockMvc.perform(get("/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isEmpty());
+        mockMvc.perform(get("/employees").contentType(MediaType.APPLICATION_JSON).content("{}")).andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
     }
 }
 //    @Test

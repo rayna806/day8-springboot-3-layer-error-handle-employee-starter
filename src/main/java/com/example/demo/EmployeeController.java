@@ -78,6 +78,8 @@ public class EmployeeController {
         employees.remove(found);
     }
 
+    @DeleteMapping("/all")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void empty() {
         employees.clear();
     }
