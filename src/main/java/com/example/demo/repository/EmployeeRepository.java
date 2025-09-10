@@ -46,19 +46,18 @@ public class EmployeeRepository {
         if (found == null) {
             return null;
         }
+        found.setStatus(false);
         employees.remove(found);
         return found;
     }
-    public Employee updateEmployee(@PathVariable int id, @RequestBody Employee updatedEmployee) {
+    public Employee updateEmployee( int id, Employee updatedEmployee) {
         Employee found = null;
+        ///Employee found = getEmployeeById(id);
         for (Employee e : employees) {
             if (Objects.equals(e.getId(), id)) {
                 found = e;
                 break;
             }
-        }
-        if (found == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found with id: " + id);
         }
         found.setName(updatedEmployee.getName());
         found.setAge(updatedEmployee.getAge());
@@ -66,4 +65,5 @@ public class EmployeeRepository {
         found.setSalary(updatedEmployee.getSalary());
         return found;
     }
+
 }

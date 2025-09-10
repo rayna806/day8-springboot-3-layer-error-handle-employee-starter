@@ -48,8 +48,7 @@ public class EmployeeControllerTest {
         Gson gson = new Gson();
         Employee jane = new Employee(null, "Jane Doe", 22, "FEMALE", 60000.0);
         String janeString = gson.toJson(jane).toString();
-        mockMvc.perform(post("/employees")
-                .contentType(MediaType.APPLICATION_JSON).content(janeString)).andReturn().getResponse().getContentAsString();
+
         String contentAsStringJane = mockMvc.perform(post("/employees")
                 .contentType(MediaType.APPLICATION_JSON).content(janeString)).andReturn().getResponse().getContentAsString();
         jane.setId(gson.fromJson(contentAsStringJane, Employee.class).getId());
@@ -65,7 +64,7 @@ public class EmployeeControllerTest {
     void should_return_404_when_employee_not_found() throws Exception {
         mockMvc.perform(get("/employees/999").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound());
     }
-
+//
     @Test
     void should_return_all_employee() throws Exception {
 //        employeeController.createEmployee(johnSmith());
@@ -183,4 +182,6 @@ public class EmployeeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(5));
     }
+
+
 }

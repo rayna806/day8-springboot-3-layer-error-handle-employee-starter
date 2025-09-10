@@ -6,6 +6,17 @@ public class Employee {
     private Integer age;
     private String gender;
     private Double salary;
+
+    private boolean status = true;
+
+    public boolean getStatus() {
+        return status;
+    }
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+
     public Integer getId() {
         return id;
     }
