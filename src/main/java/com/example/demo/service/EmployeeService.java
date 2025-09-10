@@ -32,7 +32,7 @@ public class EmployeeService {
     public Employee getEmployeeById(int id) {
         Employee employee = employeeRepository.getEmployeeById(id);
         if (employee == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found with id: " + id);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, " " + id);
         }
         return employee;
     }

@@ -59,6 +59,9 @@ public class EmployeeRepository {
                 break;
             }
         }
+        if (found == null) {
+            return null;
+        }
         found.setName(updatedEmployee.getName());
         found.setAge(updatedEmployee.getAge());
         found.setGender(updatedEmployee.getGender());
