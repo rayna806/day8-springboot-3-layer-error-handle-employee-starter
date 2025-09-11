@@ -4,12 +4,15 @@ import com.example.demo.entity.Employee;
 import com.example.demo.exception.InvalidAgeEmployeeException;
 import com.example.demo.exception.InvalidSalaryEmployeeException;
 import com.example.demo.repository.EmployeeRepository;
+import com.example.demo.repository.IEmployeeRepository;
 import com.example.demo.service.EmployeeService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -21,12 +24,12 @@ public class EmployeeServiceTest {
     @InjectMocks
     private EmployeeService employeeService;
     @Mock
-    private EmployeeRepository employeeRepository;
+    private IEmployeeRepository employeeRepository;
 
     @Test
     void should_return_employee_when_create_a_employee_with_valid_age() {
         Employee employee = new Employee(null, "John Smith", 20, "MALE", 5000.0);
-        when(employeeRepository.createEmployee(any(Employee.class))).thenReturn(employee);
+        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
         Employee employeeResult = employeeService.createEmployee(employee);
         assertEquals(employeeResult.getAge(),employee.getAge());
     }
@@ -34,14 +37,14 @@ public class EmployeeServiceTest {
     @Test
     void should_throw_expection_when_create_a_employee_of_greater_than_65_or_less_than_18() {
         Employee employee = new Employee(null, "John Smith", 10, "MALE", 5000.0);
-        when(employeeRepository.createEmployee(any(Employee.class))).thenReturn(employee);
+        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
         assertThrows(InvalidAgeEmployeeException.class,() -> employeeService.createEmployee(employee));
     }
 
     @Test
     void should_throw_expection_when_create_a_employee_of_greater_than_30_with_salary_below_20000() {
         Employee employee = new Employee(null, "John Smith", 31, "MALE", 15000.0);
-        when(employeeRepository.createEmployee(any(Employee.class))).thenReturn(employee);
+        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
         assertThrows(InvalidSalaryEmployeeException.class, () -> employeeService.createEmployee(employee));
     }
 
@@ -49,7 +52,7 @@ public class EmployeeServiceTest {
     void should_set_employee_status_active_by_default_when_create_employee() {
         Employee employee = new Employee(null, "John Smith", 31, "MALE", 15000.0);
         //employee.setStatus(true);
-        when(employeeRepository.createEmployee(any(Employee.class))).thenReturn(employee);
+        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
         assertEquals(true, employee.getStatus());
     }
 
@@ -57,9 +60,9 @@ public class EmployeeServiceTest {
     void should_throw_exception_when_update_a_employee_already_left_the_company(){
         Employee employee = new Employee(1, "John Smith", 31, "MALE", 15000.0);
         assertTrue(employee.getStatus());
-        when(employeeRepository.getEmployeeById(1)).thenReturn(employee);
+        when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
         employeeService.deleteEmployee(1);
-        verify(employeeRepository).updateEmployee(eq(1), argThat(e -> !e.getStatus()));
+        verify(employeeRepository).save(argThat(e -> !e.getStatus()));
     }
 
 

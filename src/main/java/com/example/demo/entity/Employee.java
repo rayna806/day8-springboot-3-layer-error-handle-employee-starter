@@ -1,6 +1,12 @@
 package com.example.demo.entity;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table
 public class Employee {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
     private Integer age;
@@ -12,6 +18,10 @@ public class Employee {
     public boolean getStatus() {
         return status;
     }
+
+    public Employee() {
+    }
+
     public void setStatus(boolean status) {
         this.status = status;
     }

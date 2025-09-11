@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Company;
-import com.example.demo.exception.InvalidCompanyNameException;
 import com.example.demo.repository.CompanyRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -36,22 +35,16 @@ public class CompanyService {
 
     public Company createCompany(Company company) {
         // Add business logic validation here if needed
-        if (company.getName() == null) {
-            throw new InvalidCompanyNameException("company name is null!");
-        }
-        if (company.getName().trim().isEmpty()) {
-            throw new InvalidCompanyNameException("company name cannot be empty!");
+        if (company.getName() == null || company.getName().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company name cannot be null or empty");
         }
         return companyRepository.createCompany(company);
     }
 
     public Company updateCompany(int id, Company updatedCompany) {
         // Add business logic validation here if needed
-        if (updatedCompany.getName() == null) {
-            throw new InvalidCompanyNameException("company name is null!");
-        }
-        if (updatedCompany.getName().trim().isEmpty()) {
-            throw new InvalidCompanyNameException("company name cannot be empty!");
+        if (updatedCompany.getName() == null || updatedCompany.getName().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company name cannot be null or empty");
         }
 
         Company found = companyRepository.updateCompany(id, updatedCompany);

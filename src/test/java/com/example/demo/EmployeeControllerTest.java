@@ -2,6 +2,7 @@ package com.example.demo;
 
 import com.example.demo.controller.EmployeeController;
 import com.example.demo.entity.Employee;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -24,13 +26,24 @@ public class EmployeeControllerTest {
     @Autowired
     private EmployeeController employeeController;
 
-    //    private static Employee employee(String name, int age, String gender, double salary) {
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void cleanEmployees() throws Exception{
+//        jdbcTemplate.execute("truncate table employees;");
+        jdbcTemplate.execute("delete from employee;");
+        jdbcTemplate.execute("ALTER TABLE employee AUTO_INCREMENT=1");
+
+    }
+//    private static Employee employee(String name, int age, String gender, double salary) {
 //        Employee e = new Employee();
 //        e.setName(name);
 //        e.setAge(age);
 //        e.setGender(gender);
 //        e.setSalary(salary);
 //        return e;
+//    }
 //    }
 //
     private Employee createJohnSmith() throws Exception {
@@ -55,10 +68,7 @@ public class EmployeeControllerTest {
         return jane;
     }
 
-    @BeforeEach
-    void cleanEmployees() throws Exception {
-        mockMvc.perform(delete("/employees/all"));
-    }
+
 
     @Test
     void should_return_404_when_employee_not_found() throws Exception {
