@@ -5,7 +5,10 @@ spring:
     username: "root"
     password: "0000"
   jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    show-sql: true
-    hibernate:
-      ddl-auto: update
+     database-platform: org.hibernate.dialect.MySQL8Dialect
+     show-sql: true
+     hibernate:
+       ddl-auto: update
+  flyway:
+    baseline-on-migrate: true
+    locations: classpath:db/migration

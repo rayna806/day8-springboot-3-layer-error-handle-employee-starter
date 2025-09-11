@@ -1,0 +1,1 @@
+ALTER TABLE employee ADD COLUMN address VARCHAR(255);
