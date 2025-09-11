@@ -1,7 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.entity.Company;
-import com.example.demo.repository.CompanyRepository;
+import com.example.demo.repository.ICompanyRepository;
 import com.example.demo.service.CompanyService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -24,7 +25,7 @@ public class CompanyServiceTest {
     private CompanyService companyService;
 
     @Mock
-    private CompanyRepository companyRepository;
+    private ICompanyRepository companyRepository;
 
     @Test
     void should_return_company_when_create_company_with_valid_name() {
@@ -35,7 +36,7 @@ public class CompanyServiceTest {
         expectedCompany.setId(1);
         expectedCompany.setName("Company1");
 
-        when(companyRepository.createCompany(any(Company.class))).thenReturn(expectedCompany);
+        when(companyRepository.save(any(Company.class))).thenReturn(expectedCompany);
 
         // When
         Company result = companyService.createCompany(company);
@@ -43,7 +44,7 @@ public class CompanyServiceTest {
         // Then
         assertEquals(expectedCompany.getId(), result.getId());
         assertEquals(expectedCompany.getName(), result.getName());
-        verify(companyRepository).createCompany(company);
+        verify(companyRepository).save(company);
     }
 
     @Test
@@ -57,7 +58,7 @@ public class CompanyServiceTest {
             () -> companyService.createCompany(company));
 
         assertEquals("Company name cannot be null or empty", exception.getReason());
-        verify(companyRepository, never()).createCompany(any());
+        verify(companyRepository, never()).save(any());
     }
 
     @Test
@@ -71,9 +72,8 @@ public class CompanyServiceTest {
             () -> companyService.createCompany(company));
 
         assertEquals("Company name cannot be null or empty", exception.getReason());
-        verify(companyRepository, never()).createCompany(any());
+        verify(companyRepository, never()).save(any());
     }
-
 
     @Test
     void should_return_company_when_get_company_by_existing_id() {
@@ -83,7 +83,7 @@ public class CompanyServiceTest {
         expectedCompany.setId(companyId);
         expectedCompany.setName("Company1");
 
-        when(companyRepository.getCompanyById(companyId)).thenReturn(expectedCompany);
+        when(companyRepository.findById(companyId)).thenReturn(Optional.of(expectedCompany));
 
         // When
         Company result = companyService.getCompanyById(companyId);
@@ -91,25 +91,25 @@ public class CompanyServiceTest {
         // Then
         assertEquals(expectedCompany.getId(), result.getId());
         assertEquals(expectedCompany.getName(), result.getName());
-        verify(companyRepository).getCompanyById(companyId);
+        verify(companyRepository).findById(companyId);
     }
 
     @Test
     void should_throw_exception_when_get_company_by_non_existing_id() {
         // Given
         int companyId = 999;
-        when(companyRepository.getCompanyById(companyId)).thenReturn(null);
+        when(companyRepository.findById(companyId)).thenReturn(Optional.empty());
 
         // When & Then
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
             () -> companyService.getCompanyById(companyId));
 
         assertEquals("Company not found with id: " + companyId, exception.getReason());
-        verify(companyRepository).getCompanyById(companyId);
+        verify(companyRepository).findById(companyId);
     }
 
     @Test
-    void should_return_all_companies_when_get_companies_without_page() {
+    void should_return_all_companies_when_get_companies_without_pagination() {
         // Given
         Company company1 = new Company();
         company1.setId(1);
@@ -120,15 +120,15 @@ public class CompanyServiceTest {
         company2.setName("Company2");
 
         List<Company> expectedCompanies = Arrays.asList(company1, company2);
-        when(companyRepository.getCompanies(null, null)).thenReturn(expectedCompanies);
+        when(companyRepository.findAll()).thenReturn(expectedCompanies);
 
-        // When 调用service层的方法，传入null, null,不使用分页
+        // When
         List<Company> result = companyService.getCompanies(null, null);
 
         // Then
         assertEquals(2, result.size());
         assertEquals(expectedCompanies, result);
-        verify(companyRepository).getCompanies(null, null);// 验证repository的getCompanies方法确实被调用了一次，参数是(null, null)
+        verify(companyRepository).findAll();
     }
 
     @Test
@@ -138,16 +138,20 @@ public class CompanyServiceTest {
         company1.setId(1);
         company1.setName("Company1");
 
-        List<Company> expectedCompanies = Arrays.asList(company1);
-        when(companyRepository.getCompanies(1, 1)).thenReturn(expectedCompanies);
+        Company company2 = new Company();
+        company2.setId(2);
+        company2.setName("Company2");
+
+        List<Company> allCompanies = Arrays.asList(company1, company2);
+        when(companyRepository.findAll()).thenReturn(allCompanies);
 
         // When
         List<Company> result = companyService.getCompanies(1, 1);
 
         // Then
         assertEquals(1, result.size());
-        assertEquals(expectedCompanies, result);
-        verify(companyRepository).getCompanies(1, 1);
+        assertEquals("Company1", result.get(0).getName());
+        verify(companyRepository).findAll();
     }
 
     @Test
@@ -157,19 +161,25 @@ public class CompanyServiceTest {
         Company updatedCompany = new Company();
         updatedCompany.setName("Updated Spring Technologies");
 
-        Company expectedCompany = new Company();
-        expectedCompany.setId(companyId);
-        expectedCompany.setName("Updated Spring Technologies");
+        Company existingCompany = new Company();
+        existingCompany.setId(companyId);
+        existingCompany.setName("Original Company");
 
-        when(companyRepository.updateCompany(companyId, updatedCompany)).thenReturn(expectedCompany);
+        Company savedCompany = new Company();
+        savedCompany.setId(companyId);
+        savedCompany.setName("Updated Spring Technologies");
+
+        when(companyRepository.findById(companyId)).thenReturn(Optional.of(existingCompany));
+        when(companyRepository.save(updatedCompany)).thenReturn(savedCompany);
 
         // When
         Company result = companyService.updateCompany(companyId, updatedCompany);
 
         // Then
-        assertEquals(expectedCompany.getId(), result.getId());
-        assertEquals(expectedCompany.getName(), result.getName());
-        verify(companyRepository).updateCompany(companyId, updatedCompany);
+        assertEquals(savedCompany.getId(), result.getId());
+        assertEquals(savedCompany.getName(), result.getName());
+        verify(companyRepository).findById(companyId);
+        verify(companyRepository).save(updatedCompany);
     }
 
     @Test
@@ -184,7 +194,8 @@ public class CompanyServiceTest {
             () -> companyService.updateCompany(companyId, updatedCompany));
 
         assertEquals("Company name cannot be null or empty", exception.getReason());
-        verify(companyRepository, never()).updateCompany(anyInt(), any());
+        verify(companyRepository, never()).findById(anyInt());
+        verify(companyRepository, never()).save(any());
     }
 
     @Test
@@ -199,7 +210,8 @@ public class CompanyServiceTest {
             () -> companyService.updateCompany(companyId, updatedCompany));
 
         assertEquals("Company name cannot be null or empty", exception.getReason());
-        verify(companyRepository, never()).updateCompany(anyInt(), any());
+        verify(companyRepository, never()).findById(anyInt());
+        verify(companyRepository, never()).save(any());
     }
 
     @Test
@@ -209,49 +221,47 @@ public class CompanyServiceTest {
         Company updatedCompany = new Company();
         updatedCompany.setName("Updated Company");
 
-        when(companyRepository.updateCompany(companyId, updatedCompany)).thenReturn(null);
+        when(companyRepository.findById(companyId)).thenReturn(Optional.empty());
 
         // When & Then
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
             () -> companyService.updateCompany(companyId, updatedCompany));
 
         assertEquals("Company not found with id: " + companyId, exception.getReason());
-        verify(companyRepository).updateCompany(companyId, updatedCompany);
+        verify(companyRepository).findById(companyId);
+        verify(companyRepository, never()).save(any());
     }
 
     @Test
     void should_delete_company_when_company_exists() {
         // Given
         int companyId = 1;
-        when(companyRepository.deleteCompany(companyId)).thenReturn(true);
+        Company existingCompany = new Company();
+        existingCompany.setId(companyId);
+        existingCompany.setName("Company1");
+
+        when(companyRepository.findById(companyId)).thenReturn(Optional.of(existingCompany));
 
         // When
         assertDoesNotThrow(() -> companyService.deleteCompany(companyId));
 
         // Then
-        verify(companyRepository).deleteCompany(companyId);
+        verify(companyRepository).findById(companyId);
+        verify(companyRepository).delete(existingCompany);
     }
 
     @Test
     void should_throw_exception_when_delete_non_existing_company() {
         // Given
         int companyId = 999;
-        when(companyRepository.deleteCompany(companyId)).thenReturn(false);
+        when(companyRepository.findById(companyId)).thenReturn(Optional.empty());
 
         // When & Then
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
             () -> companyService.deleteCompany(companyId));
 
         assertEquals("Company not found with id: " + companyId, exception.getReason());
-        verify(companyRepository).deleteCompany(companyId);
-    }
-
-    @Test
-    void should_call_repository_empty_when_empty_is_called() {
-        // When
-        companyService.empty();
-
-        // Then
-        verify(companyRepository).empty();
+        verify(companyRepository).findById(companyId);
+        verify(companyRepository, never()).delete(any());
     }
 }

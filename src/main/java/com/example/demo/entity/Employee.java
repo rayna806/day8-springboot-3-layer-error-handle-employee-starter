@@ -9,11 +9,28 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public void setSalary(Double salary) {
+        this.salary = salary;
+    }
+
     private Integer age;
     private String gender;
     private Double salary;
 
     private boolean status = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    private Company company;
 
     public boolean getStatus() {
         return status;
@@ -26,6 +43,13 @@ public class Employee {
         this.status = status;
     }
 
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
 
     public Integer getId() {
         return id;
@@ -47,9 +71,6 @@ public class Employee {
     }
     public void setName(String name) {
         this.name = name;
-    }
-    public void setAge(int age) {
-        this.age = age;
     }
     public void setGender(String gender) {
         this.gender = gender;

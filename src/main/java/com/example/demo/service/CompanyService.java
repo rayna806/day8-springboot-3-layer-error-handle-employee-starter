@@ -1,36 +1,44 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Company;
+import com.example.demo.entity.Employee;
 import com.example.demo.repository.CompanyRepository;
+import com.example.demo.repository.ICompanyRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CompanyService {
 
-    private final CompanyRepository companyRepository;
+    private final ICompanyRepository companyRepository;
 
-    public CompanyService(CompanyRepository companyRepository) {
+    public CompanyService(ICompanyRepository companyRepository) {
         this.companyRepository = companyRepository;
     }
 
-    public void empty() {
-        this.companyRepository.empty();
-    }
+//    public void empty() {
+//        this.companyRepository.empty();
+//    }
 
     public List<Company> getCompanies(Integer page, Integer size) {
-        return companyRepository.getCompanies(page, size);
+        if (page == null || size == null) {
+            return companyRepository.findAll();
+        } else {
+            int start = (page - 1) * size;
+            return companyRepository.findAll().stream().skip(start).limit(size).toList();
+        }
     }
 
     public Company getCompanyById(int id) {
-        Company company = companyRepository.getCompanyById(id);
-        if (company == null) {
+        Optional<Company> company = companyRepository.findById(id);
+        if (company.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found with id: " + id);
         }
-        return company;
+        return company.get();
     }
 
     public Company createCompany(Company company) {
@@ -38,7 +46,7 @@ public class CompanyService {
         if (company.getName() == null || company.getName().trim().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company name cannot be null or empty");
         }
-        return companyRepository.createCompany(company);
+        return companyRepository.save(company);
     }
 
     public Company updateCompany(int id, Company updatedCompany) {
@@ -47,15 +55,20 @@ public class CompanyService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company name cannot be null or empty");
         }
 
-        Company found = companyRepository.updateCompany(id, updatedCompany);
-        if (found == null) {
+        Optional<Company> found = companyRepository.findById(id);
+        if (found.isPresent()) {
+            updatedCompany.setId(id);  // 确保设置正确的ID
+            return companyRepository.save(updatedCompany);
+        } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found with id: " + id);
         }
-        return found;
     }
 
     public void deleteCompany(int id) {
-        boolean deleted = companyRepository.deleteCompany(id);
+        boolean deleted = companyRepository.findById(id).map(company -> {;
+            companyRepository.delete(company);
+            return true;
+        }).orElse(false);
         if (!deleted) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found with id: " + id);
         }

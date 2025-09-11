@@ -1,8 +1,10 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.EmployeeRequest;
 import com.example.demo.entity.Employee;
 import com.example.demo.exception.InvalidAgeEmployeeException;
 import com.example.demo.exception.InvalidSalaryEmployeeException;
+import com.example.demo.mapper.EmployeeMapper;
 import com.example.demo.repository.EmployeeRepository;
 import com.example.demo.repository.IEmployeeRepository;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +23,7 @@ import java.util.Optional;
 public class EmployeeService {
 
     private final IEmployeeRepository employeeRepository;
+    private final EmployeeMapper employeeMapper = new EmployeeMapper();
 
 //    public void empty() {
 //        this.employeeRepository.empty();
@@ -84,7 +87,8 @@ public class EmployeeService {
 
     }
 
-    public Employee updateEmployee(int id, Employee updatedEmployee) {
+    public Employee updateEmployee(int id, EmployeeRequest updatedEmployee) {
+        Employee employee = employeeMapper.toEntity(updatedEmployee);
         Optional<Employee> found = employeeRepository.findById(id);
         if(found.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found with id: " + id);
@@ -92,7 +96,7 @@ public class EmployeeService {
         if (!found.get().getStatus()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You can't update employee that ha`s been deleted with id: " + id);
         }
-        updatedEmployee.setId(id);
-        return employeeRepository.save(updatedEmployee);
+        employee.setId(id);
+        return employeeRepository.save(employee);
     }
 }
